@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 import sys
 
 # --- Constants ---
@@ -42,10 +43,160 @@ COLORS = {
 }
 
 pygame.init()
+# Initialize audio if available
+try:
+    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+    AUDIO_AVAILABLE = True
+except pygame.error:
+    print("Audio device not available - running in silent mode")
+    AUDIO_AVAILABLE = False
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Block Blasters')
 clock = pygame.time.Clock()
 font = pygame.font.SysFont('Arial', 18)
+
+# --- Sound System ---
+class SoundEngine:
+    def __init__(self):
+        self.sounds = {}
+        self.create_sounds()
+        
+    def create_sound(self, frequency, duration, wave_type='sine', volume=0.3):
+        """Generate a synthetic sound"""
+        sample_rate = 22050
+        frames = int(duration * sample_rate)
+        arr = []
+        
+        for i in range(frames):
+            time_point = float(i) / sample_rate
+            
+            if wave_type == 'sine':
+                wave = math.sin(2 * math.pi * frequency * time_point)
+            elif wave_type == 'square':
+                wave = 1 if math.sin(2 * math.pi * frequency * time_point) > 0 else -1
+            elif wave_type == 'sawtooth':
+                wave = 2 * (time_point * frequency - math.floor(time_point * frequency + 0.5))
+            else:  # triangle
+                wave = 2 * abs(2 * (time_point * frequency - math.floor(time_point * frequency + 0.5))) - 1
+            
+            # Apply envelope (fade in/out)
+            envelope = 1.0
+            fade_frames = int(0.1 * sample_rate)  # 0.1 second fade
+            if i < fade_frames:
+                envelope = i / fade_frames
+            elif i > frames - fade_frames:
+                envelope = (frames - i) / fade_frames
+                
+            wave *= envelope * volume
+            
+            # Convert to 16-bit
+            wave_int = int(wave * 32767)
+            arr.append([wave_int, wave_int])  # Stereo
+            
+        return pygame.sndarray.make_sound(pygame.array.array('h', arr))
+    
+    def create_sweep(self, start_freq, end_freq, duration, volume=0.3):
+        """Create a frequency sweep sound"""
+        sample_rate = 22050
+        frames = int(duration * sample_rate)
+        arr = []
+        
+        for i in range(frames):
+            time_point = float(i) / sample_rate
+            progress = i / frames
+            frequency = start_freq + (end_freq - start_freq) * progress
+            
+            wave = math.sin(2 * math.pi * frequency * time_point)
+            
+            # Apply envelope
+            envelope = 1.0
+            fade_frames = int(0.05 * sample_rate)
+            if i < fade_frames:
+                envelope = i / fade_frames
+            elif i > frames - fade_frames:
+                envelope = (frames - i) / fade_frames
+                
+            wave *= envelope * volume
+            wave_int = int(wave * 32767)
+            arr.append([wave_int, wave_int])
+            
+        return pygame.sndarray.make_sound(pygame.array.array('h', arr))
+    
+    def create_noise_burst(self, duration, volume=0.2):
+        """Create a noise burst for explosions"""
+        sample_rate = 22050
+        frames = int(duration * sample_rate)
+        arr = []
+        
+        for i in range(frames):
+            # Random noise
+            wave = random.uniform(-1, 1)
+            
+            # Apply envelope
+            envelope = 1.0
+            fade_frames = int(0.05 * sample_rate)
+            if i > frames - fade_frames:
+                envelope = (frames - i) / fade_frames
+                
+            wave *= envelope * volume
+            wave_int = int(wave * 32767)
+            arr.append([wave_int, wave_int])
+            
+        return pygame.sndarray.make_sound(pygame.array.array('h', arr))
+    
+    def create_sounds(self):
+        """Create all game sounds"""
+        if not AUDIO_AVAILABLE:
+            return
+        try:
+            # Ball collision sounds
+            self.sounds['wall_hit'] = self.create_sound(400, 0.1, 'sine', 0.4)
+            self.sounds['paddle_hit'] = self.create_sound(300, 0.15, 'triangle', 0.5)
+            self.sounds['block_hit'] = self.create_sweep(600, 200, 0.2, 0.4)
+            
+            # Powerup sounds
+            self.sounds['powerup_appear'] = self.create_sweep(200, 800, 0.3, 0.3)
+            self.sounds['powerup_collect'] = self.create_sweep(400, 1200, 0.4, 0.4)
+            
+            # Special effect sounds
+            self.sounds['multiball'] = self.create_sweep(300, 600, 0.5, 0.4)
+            self.sounds['shield_activate'] = self.create_sweep(100, 400, 0.6, 0.3)
+            self.sounds['magnet_activate'] = self.create_sound(150, 0.8, 'sine', 0.3)
+            self.sounds['time_freeze'] = self.create_sweep(800, 100, 1.0, 0.4)
+            self.sounds['bonus'] = self.create_sweep(500, 1000, 0.6, 0.5)
+            
+            # Game state sounds
+            self.sounds['ball_lost'] = self.create_sweep(300, 50, 0.8, 0.5)
+            self.sounds['game_over'] = self.create_sweep(200, 50, 1.5, 0.6)
+            self.sounds['victory'] = self.create_sweep(400, 800, 2.0, 0.5)
+            
+            # Explosion/destruction
+            self.sounds['explosion'] = self.create_noise_burst(0.3, 0.3)
+            
+        except Exception as e:
+            print(f"Sound creation error: {e}")
+            # Create silent sounds as fallback
+            silent = pygame.mixer.Sound(buffer=b'\x00' * 1000)
+            for sound_name in ['wall_hit', 'paddle_hit', 'block_hit', 'powerup_appear', 
+                             'powerup_collect', 'multiball', 'shield_activate', 
+                             'magnet_activate', 'time_freeze', 'bonus', 'ball_lost', 
+                             'game_over', 'victory', 'explosion']:
+                self.sounds[sound_name] = silent
+    
+    def play(self, sound_name, volume=1.0):
+        """Play a sound effect"""
+        if not AUDIO_AVAILABLE:
+            return
+        try:
+            if sound_name in self.sounds:
+                sound = self.sounds[sound_name]
+                sound.set_volume(volume)
+                sound.play()
+        except Exception as e:
+            print(f"Sound playback error: {e}")
+
+# Initialize sound engine
+sound_engine = SoundEngine()
 
 # --- Game classes ---
 class Ball:
@@ -355,8 +506,10 @@ def main():
                 # Wall bounce
                 if ball.x <= BALL_RADIUS or ball.x >= WIDTH - BALL_RADIUS:
                     ball.vx *= -1
+                    sound_engine.play('wall_hit', 0.6)
                 if ball.y <= BALL_RADIUS:
                     ball.vy *= -1
+                    sound_engine.play('wall_hit', 0.6)
 
                 # Paddle bounce
                 if (HEIGHT - 24 <= ball.y + BALL_RADIUS <= HEIGHT - 24 + PADDLE_H and
@@ -370,6 +523,7 @@ def main():
                         ball.vy *= -1
                         hit_pos = (ball.x - paddle_x) / paddle_w
                         ball.vx = 2.0 * (hit_pos - 0.5)
+                        sound_engine.play('paddle_hit', 0.7)
 
                 # Out of bounds (unless shield is active)
                 if ball.y > HEIGHT + BALL_RADIUS:
@@ -378,11 +532,14 @@ def main():
                         ball.y = HEIGHT - BALL_RADIUS
                         ball.vy *= -1
                         shield_timer -= 30  # Shield weakens with each save
+                        sound_engine.play('shield_activate', 0.6)
                     else:
                         balls.remove(ball)
+                        sound_engine.play('ball_lost', 0.8)
 
             if not balls:
                 game_over = True
+                sound_engine.play('game_over', 0.8)
 
             # Block collisions
             for block in blocks:
@@ -394,8 +551,10 @@ def main():
                             ball.vy *= -1
                             score += 10
                             block.hit_animation = 10  # Add hit animation
+                            sound_engine.play('block_hit', 0.8)
                             if block.powerup:
                                 powerups.append(Powerup(block.x + BLOCK_W//2, block.y + BLOCK_H//2, block.powerup))
+                                sound_engine.play('powerup_appear', 0.5)
                             break
 
             # Powerup falling
@@ -407,12 +566,14 @@ def main():
                         paddle_x < p.x < paddle_x + paddle_w):
                         # Activate powerup
                         p.active = False
+                        sound_engine.play('powerup_collect', 0.6)
                         if p.type == "widepaddle":
                             paddle_w = min(paddle_w * 1.6, WIDTH // 2)
                             powerup_timers["widepaddle"] = pygame.time.get_ticks()
                         elif p.type == "multiball":
                             balls.append(Ball(WIDTH//2, HEIGHT-40, 2, -2))
                             balls.append(Ball(WIDTH//2, HEIGHT-40, -2, -3))
+                            sound_engine.play('multiball', 0.7)
                         elif p.type == "fastball":
                             for ball in balls:
                                 ball.speed *= 1.5
@@ -434,14 +595,18 @@ def main():
                         elif p.type == "shield":
                             shield_active = True
                             shield_timer = 600  # 10 seconds
+                            sound_engine.play('shield_activate', 0.6)
                         elif p.type == "bonus":
                             score += 100  # Bonus points
+                            sound_engine.play('bonus', 0.8)
                         elif p.type == "timefreeze":
                             time_frozen = True
                             freeze_timer = 300  # 5 seconds
+                            sound_engine.play('time_freeze', 0.7)
                         elif p.type == "magnetpaddle":
                             magnet_active = True
                             magnet_timer = 600  # 10 seconds
+                            sound_engine.play('magnet_activate', 0.6)
                     # Out of bounds
                     elif p.y > HEIGHT + POWERUP_SIZE:
                         p.active = False
@@ -494,6 +659,9 @@ def main():
             
             # Check if all blocks destroyed (win condition)
             blocks_remaining = sum(1 for block in blocks if block.alive)
+            if blocks_remaining == 0 and not game_over:
+                game_over = True
+                sound_engine.play('victory', 0.9)
             if blocks_remaining == 0:
                 draw_text("VICTORY!", WIDTH//2-60, HEIGHT//2-40, (100, 255, 100), 36, glow=True)
                 draw_text(f"Final Score: {score}", WIDTH//2-80, HEIGHT//2-5, (255, 255, 255), 24, glow=True)
