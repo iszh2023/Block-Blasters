@@ -1,14 +1,21 @@
-# Spike Block Code SVG to Python Converter
+# SPIKE Prime Block Code to Python Converter
 
-A powerful Python tool that converts SVG diagrams of SPIKE Prime block code into executable Python programs. This converter helps bridge the gap between visual programming and text-based coding.
+A comprehensive Python tool that converts SPIKE Prime visual programming into executable Python code. Supports both SVG diagrams and native .llsp3 project files, providing intelligent block analysis and code generation.
 
 ## Features
 
-- **SVG Parsing**: Reads SVG files containing SPIKE block diagrams
-- **Block Recognition**: Identifies common SPIKE blocks and their parameters
-- **Python Generation**: Creates clean, executable Python code
-- **SPIKE Prime Compatible**: Generated code works with the SPIKE Prime hub
-- **Multiple Block Types**: Supports motors, sensors, LEDs, sounds, and control structures
+### Core Capabilities
+- **Dual Format Support**: Processes both SVG diagrams and native .llsp3 project files
+- **Intelligent Block Analysis**: Advanced pattern recognition for SPIKE block identification
+- **Comprehensive Code Generation**: Creates clean, executable Python code
+- **SPIKE Prime Compatible**: Generated code works with SPIKE Prime hub and MicroPython
+- **Interactive Interface**: User-friendly console application for easy conversion
+
+### Advanced Features
+- **Deep .llsp3 Analysis**: Extracts blocks from compressed project archives
+- **Pattern Matching**: Smart recognition of block types without AI dependencies
+- **Multiple File Format Support**: JSON, SVG, and compressed project handling
+- **Robust Error Handling**: Graceful handling of malformed or incomplete files
 
 ## Supported Block Types
 
@@ -33,37 +40,67 @@ A powerful Python tool that converts SVG diagrams of SPIKE Prime block code into
 
 ## Installation
 
-1. Make sure you have Python 3.7+ installed
+1. Make sure you have Python 3.11+ installed
 2. Install required packages:
 ```bash
-pip install beautifulsoup4 lxml xml-python
+pip install beautifulsoup4 lxml xml-python zipfile-deflate64 spike-py
 ```
+
+## File Types Supported
+
+### .llsp3 Files (LEGO SPIKE Prime Projects)
+- Native SPIKE Prime project files
+- Complete block program data
+- Full project metadata
+- Compressed archive format
+
+### SVG Files (Block Diagrams)  
+- Visual representations of block code
+- Text-based block descriptions
+- Position and layout information
+- Simple diagram format
 
 ## Usage
 
-### Basic Usage
-
-```python
-from spike_svg_converter import SpikeBlockParser
-
-# Create converter instance
-converter = SpikeBlockParser()
-
-# Convert SVG file to Python
-python_code = converter.parse_svg_file('your_blocks.svg')
-print(python_code)
-
-# Or convert SVG content directly
-python_code = converter.parse_svg_content(svg_string)
-```
-
-### Command Line Usage
+### Interactive Usage (Recommended)
 
 ```bash
 python main.py
 ```
 
-This will convert the included example SVG and show the generated Python code.
+Choose from:
+1. Convert SVG file
+2. Convert .llsp3 project file  
+3. Demo with included examples
+4. Quit
+
+### Programmatic Usage
+
+#### For .llsp3 Files
+```python
+from llsp3_converter import LLSP3Analyzer
+
+analyzer = LLSP3Analyzer()
+python_code = analyzer.process_llsp3_file('your_project.llsp3')
+print(python_code)
+```
+
+#### For SVG Files
+```python
+from spike_svg_converter import SpikeBlockParser
+
+converter = SpikeBlockParser()
+python_code = converter.parse_svg_file('your_blocks.svg')
+print(python_code)
+```
+
+### Testing the Converter
+
+```bash
+python test_llsp3.py
+```
+
+This tests the .llsp3 converter with the included sumobot example.
 
 ## Example
 
@@ -109,22 +146,35 @@ if __name__ == "__main__":
 
 ```
 .
-├── main.py                     # Main program demonstrating the converter
-├── spike_svg_converter.py      # Core converter library
-├── example_spike_blocks.svg    # Example SVG file with SPIKE blocks
-├── generated_spike_code.py     # Generated Python code output
-└── README.md                   # This file
+├── main.py                     # Interactive conversion interface
+├── llsp3_converter.py          # .llsp3 project file processor
+├── spike_svg_converter.py      # SVG diagram converter
+├── test_llsp3.py              # Test script for .llsp3 conversion
+├── example_spike_blocks.svg    # Example SVG file
+├── complex_example.svg         # Complex example with nested blocks
+├── sumobot_test.llsp3         # Real SPIKE Prime project file
+├── generated_spike_code.py     # Generated Python output
+├── sumobot_converted.py       # Converted sumobot code
+└── README.md                   # This documentation
 ```
 
 ## How It Works
 
-1. **SVG Parsing**: Uses BeautifulSoup to parse SVG XML structure
-2. **Text Extraction**: Finds text elements containing block descriptions
-3. **Position Analysis**: Sorts blocks by their position (top to bottom, left to right)
-4. **Block Recognition**: Matches text patterns to known SPIKE block types
-5. **Parameter Extraction**: Pulls out numbers, colors, ports, and text from blocks
-6. **Code Generation**: Converts blocks to equivalent Python statements
-7. **Structure Building**: Creates proper functions, loops, and indentation
+### For .llsp3 Files
+1. **Archive Extraction**: Unzips the .llsp3 project file
+2. **Data Mining**: Extracts JSON metadata and SVG diagrams 
+3. **Block Discovery**: Finds block definitions in project data
+4. **Pattern Analysis**: Matches blocks to known SPIKE Prime patterns
+5. **Code Generation**: Converts blocks to Python using templates
+6. **Structure Assembly**: Creates proper program flow and syntax
+
+### For SVG Files
+1. **XML Parsing**: Uses BeautifulSoup to parse SVG structure
+2. **Text Extraction**: Finds text elements with block descriptions
+3. **Position Analysis**: Sorts blocks spatially for code order
+4. **Block Recognition**: Matches text patterns to block types
+5. **Parameter Extraction**: Pulls numbers, colors, ports from text
+6. **Code Generation**: Converts to equivalent Python statements
 
 ## Block Recognition Patterns
 
