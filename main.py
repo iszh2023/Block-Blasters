@@ -21,8 +21,8 @@ COLORS = {
     "paddle_glow": (120, 180, 255),
     "ball": (255, 80, 120),
     "ball_trail": (255, 120, 160),
-    "block": [(40, 200, 80), (80, 220, 100), (120, 240, 140)],
-    "block_power": [(255, 200, 50), (255, 220, 80), (255, 240, 120)],
+    "block": [(255, 80, 120), (80, 200, 255), (255, 200, 50), (160, 60, 210), (40, 220, 180), (250, 150, 40), (120, 240, 80), (255, 120, 200)],
+    "block_power": [(255, 80, 120), (80, 200, 255), (255, 200, 50), (160, 60, 210), (40, 220, 180), (250, 150, 40), (120, 240, 80), (255, 120, 200)],
     "text": (255, 255, 255),
     "text_glow": (200, 200, 255),
     "widepaddle": (160, 60, 210),
@@ -66,7 +66,7 @@ class Block:
         self.alive = True
         self.powerup = powerup
         self.health = 1
-        self.color_variant = random.randint(0, 2)
+        self.color_variant = random.randint(0, 7)
         self.glow_intensity = 0
         self.hit_animation = 0
 
@@ -143,11 +143,8 @@ def draw_detailed_block(block):
     if not block.alive:
         return
     
-    # Choose color variant
-    if block.powerup:
-        base_color = COLORS["block_power"][block.color_variant]
-    else:
-        base_color = COLORS["block"][block.color_variant]
+    # All blocks use the same colorful palette regardless of powerup status
+    base_color = COLORS["block"][block.color_variant]
     
     # Add hit animation
     if block.hit_animation > 0:
@@ -169,13 +166,12 @@ def draw_detailed_block(block):
     # Draw highlight
     pygame.draw.rect(screen, (255, 255, 255), (block.x + shake_x + 2, block.y + shake_y + 2, BLOCK_W - 4, 3))
     
-    # Powerup glow effect
-    if block.powerup:
-        block.glow_intensity = (block.glow_intensity + 0.2) % (2 * 3.14159)
-        glow_alpha = int(30 + 20 * abs(pygame.math.Vector2(0, 1).rotate(block.glow_intensity * 180 / 3.14159).y))
-        glow_surf = pygame.Surface((BLOCK_W + 10, BLOCK_H + 10), pygame.SRCALPHA)
-        pygame.draw.rect(glow_surf, (*base_color, glow_alpha), (0, 0, BLOCK_W + 10, BLOCK_H + 10))
-        screen.blit(glow_surf, (block.x + shake_x - 5, block.y + shake_y - 5))
+    # Subtle glow effect for all blocks to maintain mystery
+    block.glow_intensity = (block.glow_intensity + 0.1) % (2 * 3.14159)
+    glow_alpha = int(15 + 10 * abs(pygame.math.Vector2(0, 1).rotate(block.glow_intensity * 180 / 3.14159).y))
+    glow_surf = pygame.Surface((BLOCK_W + 6, BLOCK_H + 6), pygame.SRCALPHA)
+    pygame.draw.rect(glow_surf, (*base_color, glow_alpha), (0, 0, BLOCK_W + 6, BLOCK_H + 6))
+    screen.blit(glow_surf, (block.x + shake_x - 3, block.y + shake_y - 3))
 
 def draw_detailed_paddle(paddle_x, paddle_w):
     # Draw shadow
