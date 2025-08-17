@@ -11,7 +11,7 @@ BLOCK_W, BLOCK_H = 62, 18
 POWERUP_SIZE = 14
 
 # --- Powerup Types ---
-POWERUP_TYPES = ["widepaddle", "multiball", "fastball", "slowball"]
+POWERUP_TYPES = ["widepaddle", "multiball", "fastball", "slowball", "bigball", "smallball", "stickypaddle", "laser", "shield", "bonus", "timefreeze", "magnetpaddle"]
 
 # --- Colors ---
 COLORS = {
@@ -29,6 +29,14 @@ COLORS = {
     "multiball": (240, 20, 180),
     "fastball": (250, 150, 40),
     "slowball": (40, 220, 220),
+    "bigball": (255, 100, 255),
+    "smallball": (100, 255, 100),
+    "stickypaddle": (180, 140, 60),
+    "laser": (255, 50, 50),
+    "shield": (100, 150, 255),
+    "bonus": (255, 215, 0),
+    "timefreeze": (200, 255, 255),
+    "magnetpaddle": (255, 165, 0),
     "particle": (255, 255, 255),
     "explosion": [(255, 100, 100), (255, 150, 50), (255, 200, 0)]
 }
@@ -83,7 +91,7 @@ class Powerup:
 
 # --- Helper functions ---
 def random_powerup():
-    if random.random() < 0.15:
+    if random.random() < 0.25:  # Increased chance for more powerups
         return random.choice(POWERUP_TYPES)
     return None
 
@@ -173,17 +181,36 @@ def draw_detailed_block(block):
     pygame.draw.rect(glow_surf, (*base_color, glow_alpha), (0, 0, BLOCK_W + 6, BLOCK_H + 6))
     screen.blit(glow_surf, (block.x + shake_x - 3, block.y + shake_y - 3))
 
-def draw_detailed_paddle(paddle_x, paddle_w):
+def draw_detailed_paddle(paddle_x, paddle_w, shield_active=False, magnet_active=False):
     # Draw shadow
     pygame.draw.rect(screen, (0, 0, 0), (paddle_x + 2, HEIGHT - 22, paddle_w, PADDLE_H))
     
-    # Draw main paddle
-    pygame.draw.rect(screen, COLORS["paddle"], (paddle_x, HEIGHT - 24, paddle_w, PADDLE_H))
+    # Choose paddle color based on active effects
+    paddle_color = COLORS["paddle"]
+    if shield_active:
+        paddle_color = COLORS["shield"]
+    elif magnet_active:
+        paddle_color = COLORS["magnetpaddle"]
     
-    # Draw glow
-    glow_surf = pygame.Surface((paddle_w + 20, PADDLE_H + 20), pygame.SRCALPHA)
-    pygame.draw.rect(glow_surf, (*COLORS["paddle_glow"], 50), (0, 0, paddle_w + 20, PADDLE_H + 20))
-    screen.blit(glow_surf, (paddle_x - 10, HEIGHT - 34))
+    # Draw main paddle
+    pygame.draw.rect(screen, paddle_color, (paddle_x, HEIGHT - 24, paddle_w, PADDLE_H))
+    
+    # Draw special effect glows
+    if shield_active:
+        # Shield glow
+        shield_surf = pygame.Surface((paddle_w + 30, PADDLE_H + 30), pygame.SRCALPHA)
+        pygame.draw.rect(shield_surf, (*COLORS["shield"], 80), (0, 0, paddle_w + 30, PADDLE_H + 30))
+        screen.blit(shield_surf, (paddle_x - 15, HEIGHT - 39))
+    elif magnet_active:
+        # Magnetic field effect
+        magnet_surf = pygame.Surface((paddle_w + 40, PADDLE_H + 40), pygame.SRCALPHA)
+        pygame.draw.ellipse(magnet_surf, (*COLORS["magnetpaddle"], 60), (0, 0, paddle_w + 40, PADDLE_H + 40))
+        screen.blit(magnet_surf, (paddle_x - 20, HEIGHT - 44))
+    else:
+        # Normal glow
+        glow_surf = pygame.Surface((paddle_w + 20, PADDLE_H + 20), pygame.SRCALPHA)
+        pygame.draw.rect(glow_surf, (*COLORS["paddle_glow"], 50), (0, 0, paddle_w + 20, PADDLE_H + 20))
+        screen.blit(glow_surf, (paddle_x - 10, HEIGHT - 34))
     
     # Draw highlight
     pygame.draw.rect(screen, (255, 255, 255), (paddle_x + 2, HEIGHT - 22, paddle_w - 4, 2))
@@ -231,9 +258,16 @@ def main():
     score = 0
     game_over = False
     powerup_timers = {}
+    sticky_timer = 0
+    shield_active = False
+    shield_timer = 0
+    time_frozen = False
+    freeze_timer = 0
+    magnet_active = False
+    magnet_timer = 0
 
     def reset():
-        nonlocal paddle_x, paddle_w, balls, blocks, powerups, score, game_over, powerup_timers
+        nonlocal paddle_x, paddle_w, balls, blocks, powerups, score, game_over, powerup_timers, sticky_timer, shield_active, shield_timer, time_frozen, freeze_timer, magnet_active, magnet_timer
         paddle_x = WIDTH // 2 - PADDLE_W // 2
         paddle_w = PADDLE_W
         balls = [Ball(WIDTH // 2, HEIGHT - 40, 2, -3)]
@@ -242,6 +276,13 @@ def main():
         score = 0
         game_over = False
         powerup_timers = {}
+        sticky_timer = 0
+        shield_active = False
+        shield_timer = 0
+        time_frozen = False
+        freeze_timer = 0
+        magnet_active = False
+        magnet_timer = 0
 
     while running:
         # Draw detailed background
@@ -266,8 +307,8 @@ def main():
         for block in blocks:
             draw_detailed_block(block)
 
-        # Draw detailed paddle
-        draw_detailed_paddle(paddle_x, paddle_w)
+        # Draw detailed paddle with special effects
+        draw_detailed_paddle(paddle_x, paddle_w, shield_active, magnet_active)
 
         # Draw detailed balls
         for ball in balls:
@@ -277,14 +318,40 @@ def main():
         for p in powerups:
             draw_detailed_powerup(p)
 
-        # Draw score with glow
+        # Draw score and status with glow
         draw_text(f"Score: {score}", 16, HEIGHT - 24, COLORS["text"], 20, glow=True)
+        
+        # Draw active powerup indicators
+        status_y = 16
+        if shield_active:
+            draw_text("SHIELD", WIDTH - 100, status_y, COLORS["shield"], 16, glow=True)
+            status_y += 25
+        if magnet_active:
+            draw_text("MAGNET", WIDTH - 100, status_y, COLORS["magnetpaddle"], 16, glow=True)
+            status_y += 25
+        if time_frozen:
+            draw_text("FROZEN", WIDTH - 100, status_y, COLORS["timefreeze"], 16, glow=True)
+            status_y += 25
+        if sticky_timer > 0:
+            draw_text("STICKY", WIDTH - 100, status_y, COLORS["stickypaddle"], 16, glow=True)
 
         # Ball movement and collisions only if not game over
-        if not game_over:
+        if not game_over and not time_frozen:
             # Move balls
             for ball in balls[:]:
                 ball.move()
+                
+                # Magnet effect - attract balls to paddle
+                if magnet_active:
+                    paddle_center_x = paddle_x + paddle_w // 2
+                    distance_x = paddle_center_x - ball.x
+                    distance_y = (HEIGHT - 24) - ball.y
+                    distance = (distance_x ** 2 + distance_y ** 2) ** 0.5
+                    
+                    if distance < 100 and distance > 0:  # Magnet range
+                        attract_force = 0.3
+                        ball.vx += (distance_x / distance) * attract_force
+                        ball.vy += (distance_y / distance) * attract_force
                 # Wall bounce
                 if ball.x <= BALL_RADIUS or ball.x >= WIDTH - BALL_RADIUS:
                     ball.vx *= -1
@@ -294,13 +361,25 @@ def main():
                 # Paddle bounce
                 if (HEIGHT - 24 <= ball.y + BALL_RADIUS <= HEIGHT - 24 + PADDLE_H and
                     paddle_x < ball.x < paddle_x + paddle_w):
-                    ball.vy *= -1
-                    hit_pos = (ball.x - paddle_x) / paddle_w
-                    ball.vx = 2.0 * (hit_pos - 0.5)
+                    if sticky_timer > 0:
+                        # Sticky paddle - ball sticks for a moment
+                        ball.vy = 0
+                        ball.vx = 0
+                        sticky_timer -= 1
+                    else:
+                        ball.vy *= -1
+                        hit_pos = (ball.x - paddle_x) / paddle_w
+                        ball.vx = 2.0 * (hit_pos - 0.5)
 
-                # Out of bounds
+                # Out of bounds (unless shield is active)
                 if ball.y > HEIGHT + BALL_RADIUS:
-                    balls.remove(ball)
+                    if shield_active:
+                        # Shield bounces ball back up
+                        ball.y = HEIGHT - BALL_RADIUS
+                        ball.vy *= -1
+                        shield_timer -= 30  # Shield weakens with each save
+                    else:
+                        balls.remove(ball)
 
             if not balls:
                 game_over = True
@@ -342,12 +421,35 @@ def main():
                             for ball in balls:
                                 ball.speed *= 0.7
                             powerup_timers["slowball"] = pygame.time.get_ticks()
+                        elif p.type == "bigball":
+                            for ball in balls:
+                                ball.glow_radius = BALL_RADIUS + 8
+                            powerup_timers["bigball"] = pygame.time.get_ticks()
+                        elif p.type == "smallball":
+                            for ball in balls:
+                                ball.glow_radius = max(BALL_RADIUS - 3, 2)
+                            powerup_timers["smallball"] = pygame.time.get_ticks()
+                        elif p.type == "stickypaddle":
+                            sticky_timer = 180  # 3 seconds at 60fps
+                        elif p.type == "shield":
+                            shield_active = True
+                            shield_timer = 600  # 10 seconds
+                        elif p.type == "bonus":
+                            score += 100  # Bonus points
+                        elif p.type == "timefreeze":
+                            time_frozen = True
+                            freeze_timer = 300  # 5 seconds
+                        elif p.type == "magnetpaddle":
+                            magnet_active = True
+                            magnet_timer = 600  # 10 seconds
                     # Out of bounds
                     elif p.y > HEIGHT + POWERUP_SIZE:
                         p.active = False
 
-            # Powerup duration
+            # Powerup duration and special timers
             now = pygame.time.get_ticks()
+            
+            # Timed powerups
             if "widepaddle" in powerup_timers and now - powerup_timers["widepaddle"] > 10000:
                 paddle_w = PADDLE_W
                 del powerup_timers["widepaddle"]
@@ -359,6 +461,30 @@ def main():
                 for ball in balls:
                     ball.speed = 1.5
                 del powerup_timers["slowball"]
+            if "bigball" in powerup_timers and now - powerup_timers["bigball"] > 8000:
+                for ball in balls:
+                    ball.glow_radius = BALL_RADIUS + 3
+                del powerup_timers["bigball"]
+            if "smallball" in powerup_timers and now - powerup_timers["smallball"] > 8000:
+                for ball in balls:
+                    ball.glow_radius = BALL_RADIUS + 3
+                del powerup_timers["smallball"]
+            
+            # Frame-based timers
+            if shield_timer > 0:
+                shield_timer -= 1
+            else:
+                shield_active = False
+                
+            if freeze_timer > 0:
+                freeze_timer -= 1
+            else:
+                time_frozen = False
+                
+            if magnet_timer > 0:
+                magnet_timer -= 1
+            else:
+                magnet_active = False
 
         # Draw detailed game over screen
         if game_over:
