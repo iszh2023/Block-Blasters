@@ -6,3 +6,4 @@ lxml
 xml-python
 spike-py
 zipfile-deflate64
+pygame

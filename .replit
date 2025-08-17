@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["xcodebuild", "zlib"]
+packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "fontconfig", "freetype", "libjpeg", "libpng", "pkg-config", "portmidi", "xcodebuild", "zlib"]
 
 [workflows]
 runButton = "Project"
@@ -29,6 +29,10 @@ args = "Spike Converter"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "LLSP3 Converter"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Block Blasters Game"
 
 [[workflows.workflow]]
 name = "Python Console App"
@@ -70,6 +74,17 @@ args = "python main.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow]]
+name = "Block Blasters Game"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[workflows.workflow.metadata]
+outputType = "vnc"
 
 [[ports]]
 localPort = 81
