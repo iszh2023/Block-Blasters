@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+    <!-- Sample Spike block diagram -->
+    
+    <!-- Start block -->
+    <g transform="translate(100, 50)">
+        <rect x="0" y="0" width="200" height="40" fill="#4CAF50" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">when program starts</text>
+    </g>
+    
+    <!-- Motor run block -->
+    <g transform="translate(100, 120)">
+        <rect x="0" y="0" width="200" height="40" fill="#2196F3" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">motor A run for 3 seconds</text>
+    </g>
+    
+    <!-- Wait block -->
+    <g transform="translate(100, 190)">
+        <rect x="0" y="0" width="200" height="40" fill="#FF9800" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">wait 0.5 seconds</text>
+    </g>
+    
+    <!-- LED block -->
+    <g transform="translate(100, 260)">
+        <rect x="0" y="0" width="200" height="40" fill="#9C27B0" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">led set to red</text>
+    </g>
+    
+    <!-- Sound block -->
+    <g transform="translate(100, 330)">
+        <rect x="0" y="0" width="200" height="40" fill="#E91E63" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">sound beep 880 for 1</text>
+    </g>
+    
+    <!-- Repeat block -->
+    <g transform="translate(100, 400)">
+        <rect x="0" y="0" width="200" height="40" fill="#795548" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">repeat 5 times</text>
+    </g>
+    
+    <!-- Print block inside repeat -->
+    <g transform="translate(120, 470)">
+        <rect x="0" y="0" width="180" height="40" fill="#607D8B" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="90" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">print "Hello Spike!"</text>
+    </g>
+    
+    <!-- Motor stop block -->
+    <g transform="translate(100, 540)">
+        <rect x="0" y="0" width="200" height="40" fill="#F44336" stroke="#333" stroke-width="2" rx="5"/>
+        <text x="100" y="25" text-anchor="middle" fill="white" font-family="Arial" font-size="14">motor A stop</text>
+    </g>
+    
+    <!-- Connection lines -->
+    <line x1="200" y1="90" x2="200" y2="120" stroke="#333" stroke-width="2"/>
+    <line x1="200" y1="160" x2="200" y2="190" stroke="#333" stroke-width="2"/>
+    <line x1="200" y1="230" x2="200" y2="260" stroke="#333" stroke-width="2"/>
+    <line x1="200" y1="300" x2="200" y2="330" stroke="#333" stroke-width="2"/>
+    <line x1="200" y1="370" x2="200" y2="400" stroke="#333" stroke-width="2"/>
+    <line x1="210" y1="440" x2="210" y2="470" stroke="#333" stroke-width="2"/>
+    <line x1="200" y1="510" x2="200" y2="540" stroke="#333" stroke-width="2"/>
+</svg>

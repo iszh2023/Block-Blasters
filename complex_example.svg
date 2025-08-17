@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800">
+    <!-- Complex Spike block diagram with nested structures -->
+    
+    <!-- Start block -->
+    <g transform="translate(50, 50)">
+        <text x="100" y="25">when program starts</text>
+    </g>
+    
+    <!-- Variable initialization -->
+    <g transform="translate(50, 120)">
+        <text x="100" y="25">set speed to 50</text>
+    </g>
+    
+    <!-- Forever loop -->
+    <g transform="translate(50, 190)">
+        <text x="100" y="25">forever</text>
+    </g>
+    
+    <!-- Motor A run inside forever loop -->
+    <g transform="translate(80, 260)">
+        <text x="100" y="25">motor A run for 2 seconds</text>
+    </g>
+    
+    <!-- LED green -->
+    <g transform="translate(80, 330)">
+        <text x="100" y="25">led set to green</text>
+    </g>
+    
+    <!-- Wait -->
+    <g transform="translate(80, 400)">
+        <text x="100" y="25">wait 1 seconds</text>
+    </g>
+    
+    <!-- Repeat block -->
+    <g transform="translate(80, 470)">
+        <text x="100" y="25">repeat 3 times</text>
+    </g>
+    
+    <!-- Beep inside repeat -->
+    <g transform="translate(110, 540)">
+        <text x="100" y="25">sound beep 660 for 0.3</text>
+    </g>
+    
+    <!-- Print inside repeat -->
+    <g transform="translate(110, 610)">
+        <text x="100" y="25">print "Beep!"</text>
+    </g>
+    
+    <!-- Motor B run -->
+    <g transform="translate(80, 680)">
+        <text x="100" y="25">motor B run for 1 seconds</text>
+    </g>
+    
+    <!-- LED red -->
+    <g transform="translate(80, 750)">
+        <text x="100" y="25">led set to red</text>
+    </g>
+</svg>

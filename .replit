@@ -4,6 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+packages = ["xcodebuild", "zlib"]
 
 [workflows]
 runButton = "Project"
@@ -20,6 +21,10 @@ args = "Python Console App"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "python_execution"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Spike Converter"
 
 [[workflows.workflow]]
 name = "Python Console App"
@@ -39,3 +44,22 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
+
+[[workflows.workflow]]
+name = "Spike Converter"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[ports]]
+localPort = 81
+externalPort = 80
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
