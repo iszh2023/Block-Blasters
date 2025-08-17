@@ -57,7 +57,7 @@ class Powerup:
     def __init__(self, x, y, type_):
         self.x = x
         self.y = y
-        self.vy = 2
+        self.vy = 0.4
         self.type = type_
         self.active = True
 
