@@ -35,7 +35,7 @@ font = pygame.font.SysFont('Arial', 18)
 
 # --- Game classes ---
 class Ball:
-    def __init__(self, x, y, vx, vy, speed=1.0):
+    def __init__(self, x, y, vx, vy, speed=1.5):
         self.x = float(x)
         self.y = float(y)
         self.vx = float(vx)
@@ -216,11 +216,11 @@ def main():
                 del powerup_timers["widepaddle"]
             if "fastball" in powerup_timers and now - powerup_timers["fastball"] > 10000:
                 for ball in balls:
-                    ball.speed = 1.0
+                    ball.speed = 1.5
                 del powerup_timers["fastball"]
             if "slowball" in powerup_timers and now - powerup_timers["slowball"] > 10000:
                 for ball in balls:
-                    ball.speed = 1.0
+                    ball.speed = 1.5
                 del powerup_timers["slowball"]
 
         # Draw game over text
