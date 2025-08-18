@@ -12,7 +12,7 @@ BLOCK_W, BLOCK_H = 62, 18
 POWERUP_SIZE = 14
 
 # --- Powerup Types ---
-POWERUP_TYPES = ["widepaddle", "multiball", "fastball", "slowball", "bigball", "smallball", "stickypaddle", "laser", "shield", "bonus", "timefreeze", "magnetpaddle"]
+POWERUP_TYPES = ["widepaddle", "multiball", "fastball", "slowball", "bigball", "smallball", "stickypaddle", "laser", "shield", "bonus", "timefreeze", "magnetpaddle", "alien"]
 
 # --- Colors ---
 COLORS = {
@@ -38,6 +38,7 @@ COLORS = {
     "bonus": (255, 215, 0),
     "timefreeze": (200, 255, 255),
     "magnetpaddle": (255, 165, 0),
+    "alien": (255, 0, 255),
     "particle": (255, 255, 255),
     "explosion": [(255, 100, 100), (255, 150, 50), (255, 200, 0)]
 }
@@ -169,6 +170,7 @@ class SoundEngine:
             self.sounds['ball_lost'] = self.create_sweep(300, 50, 0.8, 0.5)
             self.sounds['game_over'] = self.create_sweep(200, 50, 1.5, 0.6)
             self.sounds['victory'] = self.create_sweep(400, 800, 2.0, 0.5)
+            self.sounds['alien'] = self.create_sweep(100, 800, 0.5, 0.6)
             
             # Explosion/destruction
             self.sounds['explosion'] = self.create_noise_burst(0.3, 0.3)
@@ -180,7 +182,7 @@ class SoundEngine:
             for sound_name in ['wall_hit', 'paddle_hit', 'block_hit', 'powerup_appear', 
                              'powerup_collect', 'multiball', 'shield_activate', 
                              'magnet_activate', 'time_freeze', 'bonus', 'ball_lost', 
-                             'game_over', 'victory', 'explosion']:
+                             'game_over', 'victory', 'explosion', 'alien']:
                 self.sounds[sound_name] = silent
     
     def play(self, sound_name, volume=1.0):
@@ -379,24 +381,45 @@ def draw_detailed_powerup(powerup):
     # Create pulsing effect
     pulse_size = int(POWERUP_SIZE + 3 * abs(pygame.math.Vector2(0, 1).rotate(powerup.pulse * 180 / 3.14159).y))
     
-    # Draw glow
-    glow_surf = pygame.Surface((pulse_size * 3, pulse_size * 3), pygame.SRCALPHA)
-    pygame.draw.circle(glow_surf, (*COLORS[powerup.type], 80), (pulse_size * 1.5, pulse_size * 1.5), pulse_size)
-    screen.blit(glow_surf, (int(powerup.x) - pulse_size * 1.5, int(powerup.y) - pulse_size * 1.5))
-    
-    # Draw main powerup
-    pygame.draw.circle(screen, COLORS[powerup.type], (int(powerup.x), int(powerup.y)), POWERUP_SIZE // 2)
-    
-    # Draw rotating border
-    points = []
-    for i in range(8):
-        angle = (powerup.rotation + i * 45) * 3.14159 / 180
-        x = int(powerup.x + (POWERUP_SIZE // 2 + 2) * pygame.math.Vector2(1, 0).rotate(angle * 180 / 3.14159).x)
-        y = int(powerup.y + (POWERUP_SIZE // 2 + 2) * pygame.math.Vector2(1, 0).rotate(angle * 180 / 3.14159).y)
-        points.append((x, y))
-    
-    if len(points) > 2:
-        pygame.draw.polygon(screen, (255, 255, 255), points, 1)
+    if powerup.type == "alien":
+        # Special alien powerup display
+        # Draw menacing red glow
+        glow_surf = pygame.Surface((pulse_size * 4, pulse_size * 4), pygame.SRCALPHA)
+        pygame.draw.circle(glow_surf, (255, 0, 0, 120), (pulse_size * 2, pulse_size * 2), pulse_size * 1.5)
+        screen.blit(glow_surf, (int(powerup.x) - pulse_size * 2, int(powerup.y) - pulse_size * 2))
+        
+        # Draw alien emoji-style graphic
+        alien_size = POWERUP_SIZE
+        # Main body (purple)
+        pygame.draw.rect(screen, (128, 0, 128), (int(powerup.x) - alien_size//2, int(powerup.y) - alien_size//2, alien_size, alien_size))
+        # Eyes (yellow)
+        pygame.draw.circle(screen, (255, 255, 0), (int(powerup.x) - 3, int(powerup.y) - 2), 2)
+        pygame.draw.circle(screen, (255, 255, 0), (int(powerup.x) + 3, int(powerup.y) - 2), 2)
+        # Mouth (dark)
+        pygame.draw.circle(screen, (0, 0, 0), (int(powerup.x), int(powerup.y) + 3), 2)
+        
+        # Menacing border
+        pygame.draw.rect(screen, (255, 0, 0), (int(powerup.x) - alien_size//2, int(powerup.y) - alien_size//2, alien_size, alien_size), 2)
+    else:
+        # Normal powerup display
+        # Draw glow
+        glow_surf = pygame.Surface((pulse_size * 3, pulse_size * 3), pygame.SRCALPHA)
+        pygame.draw.circle(glow_surf, (*COLORS[powerup.type], 80), (pulse_size * 1.5, pulse_size * 1.5), pulse_size)
+        screen.blit(glow_surf, (int(powerup.x) - pulse_size * 1.5, int(powerup.y) - pulse_size * 1.5))
+        
+        # Draw main powerup
+        pygame.draw.circle(screen, COLORS[powerup.type], (int(powerup.x), int(powerup.y)), POWERUP_SIZE // 2)
+        
+        # Draw rotating border
+        points = []
+        for i in range(8):
+            angle = (powerup.rotation + i * 45) * 3.14159 / 180
+            x = int(powerup.x + (POWERUP_SIZE // 2 + 2) * pygame.math.Vector2(1, 0).rotate(angle * 180 / 3.14159).x)
+            y = int(powerup.y + (POWERUP_SIZE // 2 + 2) * pygame.math.Vector2(1, 0).rotate(angle * 180 / 3.14159).y)
+            points.append((x, y))
+        
+        if len(points) > 2:
+            pygame.draw.polygon(screen, (255, 255, 255), points, 1)
 
 # --- Main game function ---
 def main():
@@ -621,6 +644,13 @@ def main():
                             magnet_active = True
                             magnet_timer = 600  # 10 seconds
                             sound_engine.play('magnet_activate', 0.6)
+                        elif p.type == "alien":
+                            # Alien powerup - loses a life!
+                            lives -= 1
+                            sound_engine.play('alien', 0.8)
+                            if lives <= 0:
+                                game_over = True
+                                sound_engine.play('game_over', 0.8)
                     # Out of bounds
                     elif p.y > HEIGHT + POWERUP_SIZE:
                         p.active = False
