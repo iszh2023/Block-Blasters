@@ -407,6 +407,7 @@ def main():
     blocks = create_blocks()
     powerups = []
     score = 0
+    lives = 3
     game_over = False
     powerup_timers = {}
     sticky_timer = 0
@@ -418,13 +419,14 @@ def main():
     magnet_timer = 0
 
     def reset():
-        nonlocal paddle_x, paddle_w, balls, blocks, powerups, score, game_over, powerup_timers, sticky_timer, shield_active, shield_timer, time_frozen, freeze_timer, magnet_active, magnet_timer
+        nonlocal paddle_x, paddle_w, balls, blocks, powerups, score, lives, game_over, powerup_timers, sticky_timer, shield_active, shield_timer, time_frozen, freeze_timer, magnet_active, magnet_timer
         paddle_x = WIDTH // 2 - PADDLE_W // 2
         paddle_w = PADDLE_W
         balls = [Ball(WIDTH // 2, HEIGHT - 40, 2, -3)]
         blocks = create_blocks()
         powerups = []
         score = 0
+        lives = 3
         game_over = False
         powerup_timers = {}
         sticky_timer = 0
@@ -471,6 +473,17 @@ def main():
 
         # Draw score and status with glow
         draw_text(f"Score: {score}", 16, HEIGHT - 24, COLORS["text"], 20, glow=True)
+        
+        # Draw lives indicator in bottom right
+        lives_text = f"Lives: {lives}"
+        draw_text(lives_text, WIDTH - 120, HEIGHT - 24, COLORS["text"], 20, glow=True)
+        
+        # Draw ball icons to show remaining lives
+        for i in range(lives):
+            ball_x = WIDTH - 80 + (i * 15)
+            ball_y = HEIGHT - 15
+            pygame.draw.circle(screen, COLORS["ball"], (ball_x, ball_y), 6)
+            pygame.draw.circle(screen, (255, 255, 255), (ball_x - 2, ball_y - 2), 2)
         
         # Draw active powerup indicators
         status_y = 16
@@ -535,11 +548,16 @@ def main():
                         sound_engine.play('shield_activate', 0.6)
                     else:
                         balls.remove(ball)
-                        sound_engine.play('ball_lost', 0.8)
 
             if not balls:
-                game_over = True
-                sound_engine.play('game_over', 0.8)
+                lives -= 1
+                sound_engine.play('ball_lost', 0.8)
+                if lives <= 0:
+                    game_over = True
+                    sound_engine.play('game_over', 0.8)
+                else:
+                    # Respawn ball if lives remaining
+                    balls = [Ball(WIDTH // 2, HEIGHT - 40, 2, -3)]
 
             # Block collisions
             for block in blocks:
