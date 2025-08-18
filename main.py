@@ -258,18 +258,20 @@ def create_blocks():
             blocks.append(Block(x, y, powerup))
     return blocks
 
-def draw_text(text, x, y, color=COLORS["text"], size=18, glow=False):
+def draw_text(text, x, y, color=COLORS["text"], size=18, glow=False, alpha=255):
     tfont = pygame.font.SysFont('Arial', size, bold=True)
     
     if glow:
         # Create glow effect
         glow_surface = tfont.render(text, True, COLORS["text_glow"])
+        glow_surface.set_alpha(alpha)
         for dx in [-2, -1, 0, 1, 2]:
             for dy in [-2, -1, 0, 1, 2]:
                 if dx != 0 or dy != 0:
                     screen.blit(glow_surface, (x + dx, y + dy))
     
     surface = tfont.render(text, True, color)
+    surface.set_alpha(alpha)
     screen.blit(surface, (x, y))
 
 def draw_gradient_background():
@@ -440,9 +442,11 @@ def main():
     freeze_timer = 0
     magnet_active = False
     magnet_timer = 0
+    alien_warning_timer = 0
+    alien_warning_alpha = 0
 
     def reset():
-        nonlocal paddle_x, paddle_w, balls, blocks, powerups, score, lives, game_over, powerup_timers, sticky_timer, shield_active, shield_timer, time_frozen, freeze_timer, magnet_active, magnet_timer
+        nonlocal paddle_x, paddle_w, balls, blocks, powerups, score, lives, game_over, powerup_timers, sticky_timer, shield_active, shield_timer, time_frozen, freeze_timer, magnet_active, magnet_timer, alien_warning_timer, alien_warning_alpha
         paddle_x = WIDTH // 2 - PADDLE_W // 2
         paddle_w = PADDLE_W
         balls = [Ball(WIDTH // 2, HEIGHT - 40, 2, -3)]
@@ -459,6 +463,8 @@ def main():
         freeze_timer = 0
         magnet_active = False
         magnet_timer = 0
+        alien_warning_timer = 0
+        alien_warning_alpha = 0
 
     while running:
         # Draw detailed background
@@ -517,6 +523,14 @@ def main():
             status_y += 25
         if sticky_timer > 0:
             draw_text("STICKY", WIDTH - 100, status_y, COLORS["stickypaddle"], 16, glow=True)
+            
+        # Draw alien warning message
+        if alien_warning_timer > 0:
+            warning_text = "Don't catch aliens! They take away 1 life"
+            text_width = len(warning_text) * 12  # Approximate text width
+            warning_x = (WIDTH - text_width) // 2
+            warning_y = HEIGHT // 2
+            draw_text(warning_text, warning_x, warning_y, (255, 50, 50), 24, glow=True, alpha=alien_warning_alpha)
 
         # Ball movement and collisions only if not game over
         if not game_over and not time_frozen:
@@ -648,6 +662,9 @@ def main():
                             # Alien powerup - loses a life!
                             lives -= 1
                             sound_engine.play('alien', 0.8)
+                            # Show warning message
+                            alien_warning_timer = 180  # 3 seconds at 60fps
+                            alien_warning_alpha = 255
                             if lives <= 0:
                                 game_over = True
                                 sound_engine.play('game_over', 0.8)
@@ -694,6 +711,15 @@ def main():
                 magnet_timer -= 1
             else:
                 magnet_active = False
+                
+            # Handle alien warning fade
+            if alien_warning_timer > 0:
+                alien_warning_timer -= 1
+                # Fade out over the last 60 frames (1 second)
+                if alien_warning_timer < 60:
+                    alien_warning_alpha = int(255 * (alien_warning_timer / 60))
+                else:
+                    alien_warning_alpha = 255
 
         # Draw detailed game over screen
         if game_over:
