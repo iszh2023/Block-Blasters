@@ -474,13 +474,9 @@ def main():
         # Draw score and status with glow
         draw_text(f"Score: {score}", 16, HEIGHT - 24, COLORS["text"], 20, glow=True)
         
-        # Draw lives indicator in bottom right
-        lives_text = f"Lives: {lives}"
-        draw_text(lives_text, WIDTH - 120, HEIGHT - 24, COLORS["text"], 20, glow=True)
-        
-        # Draw ball icons to show remaining lives
+        # Draw ball icons to show remaining lives in bottom right
         for i in range(lives):
-            ball_x = WIDTH - 80 + (i * 15)
+            ball_x = WIDTH - 60 + (i * 15)
             ball_y = HEIGHT - 15
             pygame.draw.circle(screen, COLORS["ball"], (ball_x, ball_y), 6)
             pygame.draw.circle(screen, (255, 255, 255), (ball_x - 2, ball_y - 2), 2)
