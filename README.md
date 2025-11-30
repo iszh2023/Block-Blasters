@@ -113,4 +113,4 @@ Perfect for short sessions or trying to beat your own high score.
 ---
 
 Enjoy blasting blocks and surviving the chaos!
-If you want badges, screenshots, or a trailer-style README, just ask.
+
