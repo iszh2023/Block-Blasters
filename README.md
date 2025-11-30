@@ -20,6 +20,8 @@ You control a small character inside an arena while blocks of different types sp
 
 It’s easy to learn but surprisingly difficult to master.
 
+<img width="572" height="383" alt="Screenshot 2025-11-29 at 6 19 05 PM" src="https://github.com/user-attachments/assets/26cb73e5-0c81-4fbb-95cb-9b34872a22dc" />
+
 ---
 
 ## 🔥 Features
@@ -51,6 +53,7 @@ Powerups spawn occasionally and can completely change your run:
 
 Using the right powerup at the right time is key to surviving long runs.
 
+<img width="577" height="389" alt="Screenshot 2025-11-29 at 6 19 11 PM" src="https://github.com/user-attachments/assets/59062f45-6979-4825-81e2-de1b096b6257" />
 ---
 
 ## 🧠 Difficulty Curve
@@ -64,6 +67,8 @@ The game ramps up dynamically:
 
 What starts slow gradually becomes pure chaos.
 
+
+<img width="1188" height="844" alt="image" src="https://github.com/user-attachments/assets/306083c9-2193-4877-aba2-9de5f599f4cc" />
 ---
 
 ## 📊 Scoring
